@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Velora</title>
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+    user-select: none;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background: linear-gradient(270deg, #1a0000, #330000, #1a0000);
+    background-size: 600% 600%;
+    animation: bgShift 60s ease-in-out infinite;
+    color: #eee;
+  }
+  @keyframes bgShift {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+
+  /* Center container */
+  #container {
+    width: 100vw; height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: rgba(0,0,0,0.5);
+  }
+
+  /* Rotating V Effect */
+  #rotatingV {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform-style: preserve-3d;
+    transform-origin: center;
+    font-weight: 900;
+    font-size: 180px;
+    color: #ff0000aa;
+    filter: drop-shadow(0 0 6px #ff000080);
+    pointer-events: none;
+    user-select: none;
+    animation: spinV 20s linear infinite;
+    z-index: 0;
+  }
+  @keyframes spinV {
+    0% { transform: translate(-50%, -50%) rotate(0deg);}
+    100% { transform: translate(-50%, -50%) rotate(360deg);}
+  }
+
+  /* Trail effect on V edges */
+  #rotatingV::after {
+    content: 'V';
+    position: absolute;
+    left: -30px;
+    top: 0;
+    color: #ff5555aa;
+    filter: blur(15px);
+    opacity: 0.4;
+  }
+  #rotatingV::before {
+    content: 'V';
+    position: absolute;
+    right: -30px;
+    top: 0;
+    color: #ff5555aa;
+    filter: blur(15px);
+    opacity: 0.4;
+  }
+
+  /* Main box with shadow and glow */
+  #main-ui, #auth {
+    background: rgba(20, 0, 0, 0.8);
+    border-radius: 15px;
+    box-shadow:
+      0 0 15px #ff0000cc,
+      inset 0 0 20px #ff0000aa;
+    padding: 25px;
+    width: 400px;
+    max-width: 90vw;
+    z-index: 10;
+  }
+
+  /* Hide initially */
+  .hidden {
+    display: none;
+  }
+
+  /* Titles */
+  #auth h2, #main-ui h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #ff4444;
+    text-shadow: 0 0 6px #ff0000cc;
+  }
+
+  /* Input styling */
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0 20px 0;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: #330000cc;
+    color: #fff;
+    font-size: 16px;
+    box-shadow: 0 0 8px #ff0000aa inset;
+    transition: box-shadow 0.3s ease;
+  }
+  input[type="text"]:focus, input[type="password"]:focus {
+    box-shadow: 0 0 15px #ff0000ff inset;
+  }
+
+  /* Buttons */
+  button {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(90deg, #ff0000, #660000);
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    cursor: pointer;
+    text-shadow: 0 0 5px #ff2222cc;
+    transition: box-shadow 0.4s ease, background 0.4s ease;
+  }
+  button:hover {
+    box-shadow: 0 0 20px #ff4444aa;
+    background: linear-gradient(90deg, #ff4444, #990000);
+  }
+
+  /* Auth error */
+  #auth-error {
+    color: #ff6666;
+    font-weight: 600;
+    min-height: 20px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  /* Chat layout */
+  #chat-section {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+  }
+
+  #public-chat {
+    flex: 1;
+    background: #111;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    box-shadow: inset 0 0 10px #ff0000cc;
+    font-size: 14px;
+  }
+
+  #public-chat .msg {
+    margin-bottom: 8px;
+  }
+  #public-chat .msg b {
+    color: #ff5555;
+  }
+
+  /* Message input */
+  #chat-input {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    width: 100%;
+    box-shadow: 0 0 8px #ff0000cc inset;
+    background: #220000dd;
+    color: white;
+  }
+  #send-btn {
+    margin-top: 10px;
+  }
+
+  /* Friends area */
+  #friends-area {
+    margin-top: 20px;
+  }
+  #friends-area h3 {
+    color: #ff2222;
+    text-shadow: 0 0 8px #ff0000bb;
+  }
+  #friends-ul {
+    list-style: none;
+    padding: 0;
+    max-height: 130px;
+    overflow-y: auto;
+    background: #220000cc;
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px #ff0000cc;
+  }
+  #friends-ul li {
+    padding: 5px 10px;
+    border-bottom: 1px solid #ff000022;
+    cursor: default;
+  }
+
+  /* Add friend form */
+  #add-friend-input {
+    width: calc(100% - 110px);
+    display: inline-block;
+  }
+  #add-friend-btn {
+    width: 90px;
+    display: inline-block;
+    margin-left: 10px;
+  }
+
+  /* Online user count bottom-right */
+  #online-count {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    background: #330000cc;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #ff8888cc;
+    box-shadow: 0 0 15px #ff4444aa;
+    user-select: none;
+    z-index: 20;
+  }
+
+  /* Staff note top-right */
+  #staff-note {
+    position: fixed;
+    top: 10px;
+    right: 15px;
+    font-size: 13px;
+    color: #ff2222bb;
+    font-weight: 600;
+    opacity: 0.4;
+    user-select: none;
+    text-shadow: 0 0 8px #ff0000bb;
+    z-index: 20;
+    transition: opacity 1s ease-in-out;
+  }
+  #staff-note:hover {
+    opacity: 0.8;
+  }
+
+  /* Mouse trail container */
+  #mouse-trail {
+    position: fixed;
+    top: 0; left: 0; pointer-events: none;
+    width: 100%; height: 100%;
+    z-index: 30;
+  }
+  .trail-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 0, 0, 0.25);
+    filter: drop-shadow(0 0 6px #ff0000bb);
+    pointer-events: none;
+    user-select: none;
+    animation: fadeTrail 1s forwards;
+  }
+  @keyframes fadeTrail {
+    0% {opacity: 1; transform: scale(1);}
+    100% {opacity: 0; transform: scale(0.3);}
+  }
+
+</style>
+</head>
+<body>
+
+<div id="rotatingV">V</div>
+
+<div id="container">
+  <!-- Auth area -->
+  <div id="auth">
+    <h2>Velora</h2>
+    <input type="text" id="username" placeholder="Username (min 5 chars)" autocomplete="off" />
+    <input type="password" id="password" placeholder="Password (min 5 chars)" autocomplete="off" />
+    <div id="auth-error"></div>
+    <button id="login-btn">Register / Login</button>
+  </div>
+
+  <!-- Main UI after login -->
+  <div id="main-ui" class="hidden">
+    <h2>Welcome, <span id="current-user"></span></h2>
+
+    <div id="chat-section">
+      <div id="public-chat"></div>
+      <input type="text" id="chat-input" placeholder="Type your message here and press Enter..." autocomplete="off" />
+      <button id="send-btn">Send</button>
+    </div>
+
+    <div id="friends-area">
+      <h3>Friends</h3>
+      <ul id="friends-ul"></ul>
+      <input type="text" id="add-friend-input" placeholder="Friend's username (min 5 chars)" autocomplete="off" />
+      <button id="add-friend-btn">Add Friend</button>
+    </div>
+  </div>
+</div>
+
+<div id="online-count">Users Online: 0</div>
+<div id="staff-note">Discord Staff Taking / Support : theshape.0</div>
+
+<div id="mouse-trail"></div>
+
+<script>
+  // ========== Storage Keys ==========
+  const STORAGE_USERS = 'velora_users';
+  const STORAGE_MESSAGES = 'velora_messages';
+
+  // ========== Load or initialize users and messages ==========
+  let usersDB = JSON.parse(localStorage.getItem(STORAGE_USERS)) || {};
+  let messages = JSON.parse(localStorage.getItem(STORAGE_MESSAGES)) || [];
+
+  // ========== Current session info ==========
+  let currentUser = null;
+
+  // ========== DOM elements ==========
+  const authDiv = document.getElementById('auth');
+  const mainUI = document.getElementById('main-ui');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const authError = document.getElementById('auth-error');
+  const loginBtn = document.getElementById('login-btn');
+
+  const currentUserSpan = document.getElementById('current-user');
+  const publicChat = document.getElementById('public-chat');
+  const chatInput = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  const friendsUl = document.getElementById('friends-ul');
+  const addFriendInput = document.getElementById('add-friend-input');
+  const addFriendBtn = document.getElementById('add-friend-btn');
+
+  const onlineCount = document.getElementById('online-count');
+
+  // ========== Auth: Register/Login ==========
+  function saveUsers() {
+    localStorage.setItem(STORAGE_USERS, JSON.stringify(usersDB));
+  }
+  function saveMessages() {
+    localStorage.setItem(STORAGE_MESSAGES, JSON.stringify(messages));
+  }
+
+  function validateUsername(name) {
+    return /^[a-zA-Z0-9_]{5,20}$/.test(name);
+  }
+
+  function validatePassword(pass) {
+    return pass.length >= 5;
+  }
+
+  loginBtn.addEventListener('click', () => {
+    const name = usernameInput.value.trim();
+    const pass = passwordInput.value;
+
+    if (!validateUsername(name)) {
+      authError.textContent = "Username must be 5-20 chars, letters, numbers, _ only.";
+      return;
+    }
+    if (!validatePassword(pass)) {
+      authError.textContent = "Password must be at least 5 characters.";
+      return;
+    }
+
+    if (!(name in usersDB)) {
+      // Register new user
+      usersDB[name] = {
+        password: pass,
+        friends: [],
+        online: true,
+      };
+      currentUser = name;
+      saveUsers();
+      authError.textContent = "";
+      showMainUI();
+    } else {
+      // Login existing user
+      if (usersDB[name].password === pass) {
+        currentUser = name;
+        usersDB[name].online = true;
+        saveUsers();
+        authError.textContent = "";
+        showMainUI();
+      } else {
+        authError.textContent = "Wrong password.";
+      }
+    }
+  });
+
+  // ========== Show Main UI ==========
+  function showMainUI() {
+    authDiv.classList.add('hidden');
+    mainUI.classList.remove('hidden');
+    currentUserSpan.textContent = currentUser;
+    updateFriendsList();
+    renderMessages();
+    updateOnlineCount();
+    chatInput.focus();
+  }
+
+  // ========== Chat ==========
+  function renderMessages() {
+    publicChat.innerHTML = '';
+    messages.forEach(({user, text, time}) => {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg';
+      const date = new Date(time);
+      const hours = date.getHours().toString().padStart(2,'0');
+      const mins = date.getMinutes().toString().padStart(2,'0');
+      msgDiv.innerHTML = `<b>${escapeHTML(user)}</b> [${hours}:${mins}]: ${escapeHTML(text)}`;
+      publicChat.appendChild(msgDiv);
+    });
+    publicChat.scrollTop = publicChat.scrollHeight;
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, function(m) {
+      return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[m];
+    });
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    messages.push({
+      user: currentUser,
+      text,
+      time: Date.now()
+    });
+    saveMessages();
+    renderMessages();
+    chatInput.value = '';
+  }
+
+  // ========== Friends ==========
+  addFriendBtn.addEventListener('click', () => {
+    const friendName = addFriendInput.value.trim();
+    if (!validateUsername(friendName)) {
+      alert('Friend username must be 5-20 chars, letters, numbers, _ only.');
+      return;
+    }
+    if (!(friendName in usersDB)) {
+      alert('This user does not exist.');
+      return;
+    }
+    if (friendName === currentUser) {
+      alert('You cannot add yourself.');
+      return;
+    }
+    if (usersDB[currentUser].friends.includes(friendName)) {
+      alert('Already in your friends list.');
+      return;
+    }
+    usersDB[currentUser].friends.push(friendName);
+    saveUsers();
+    updateFriendsList();
+    addFriendInput.value = '';
+  });
+
+  function updateFriendsList() {
+    friendsUl.innerHTML = '';
+    const friends = usersDB[currentUser]?.friends || [];
+    friends.forEach(friend => {
+      const li = document.createElement('li');
+      let status = usersDB[friend]?.online ? '🟢 Online' : '⚪ Offline';
+      li.textContent = `${friend} — ${status}`;
+      friendsUl.appendChild(li);
+    });
+  }
+
+  // ========== Online count ==========
+  function updateOnlineCount() {
+    const onlineUsers = Object.values(usersDB).filter(u => u.online).length;
+    onlineCount.textContent = `Users Online: ${onlineUsers}`;
+  }
+
+  // ========== Logout and tab close handling ==========
+  window.addEventListener('beforeunload', () => {
+    if (currentUser && usersDB[currentUser]) {
+      usersDB[currentUser].online = false;
+      saveUsers();
+    }
+  });
+
+  // ========== Mouse trail effect ==========
+  const mouseTrail = document.getElementById('mouse-trail');
+  const trailDots = [];
+  const maxTrail = 20;
+
+  document.addEventListener('mousemove', e => {
+    const dot = document.createElement('div');
+    dot.classList.add('trail-dot');
+    dot.style.left = e.clientX + 'px';
+    dot.style.top = e.clientY + 'px';
+    mouseTrail.appendChild(dot);
+    trailDots.push(dot);
+
+    setTimeout(() => {
+      dot.remove();
+      trailDots.shift();
+    }, 1000);
+  });
+
+</script>
+
+</body>
+</html>
